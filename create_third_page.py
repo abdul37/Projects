@@ -11,15 +11,16 @@ from self_made_pop_up_creation import SelfMadePopUp  # import the SelfMadePopUp 
 START_TIME = "start_time"  # create a constant variable for the start time
 END_TIME = "end_time"  # create a constant variable for the end time
 
-from twilio.rest import Client  # import the Client class from the twilio.rest module so employers can send the final schedule to their employees via text message
+# set up required variables for the textbelt API
+import os
+import requests
+from dotenv import load_dotenv
 
-# NOTE: Your Twilio account SID and authentication token, will be different from mine, so make sure you change them to your own,
-# you should also put tokens like this in virtual environments for privacy
+# Load environment variables from .env file
+load_dotenv()
 
-ACCOUNT_SID = ""  # your ID for your Twilio account (pretty much your username)
-AUTH_TOKEN = ""  # your authentication token for your Twilio account(pretty much your password)
-TWILIO_PHONE_NUMBER = "+"  # Format: '+1234567890', the employers phone number that they got from Twilio
-
+# Get the API key from environment variables
+api_key = os.getenv('TEXTBELT_API_KEY')
 
 class Page3(Frame):  # create a Page3 class that inherits from the Frame class
     def __init__(
