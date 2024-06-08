@@ -458,10 +458,6 @@ class Page3(Frame):  # create a Page3 class that inherits from the Frame class
         self.create_data()  # call the create_data method to create the data widgets of the Page3 class, these will be label and entry widgets
 
     def send_schedule_to_employees(self):  # method to send the schedule to the employees
-        # you're going to populate the schedule_to_send_dict with the data from the entries, iterating through the entries would start you from left to right, monday through sunday,
-        # and then down one row to the next employee, and then left to right again. The order of employees in the entries top to down should be the same as the order of employees in the json data,
-        # that's why you can simply assume that the first 0-6 index of the entries corresponds to the first employee in the json data, and the next 7-13 index of the entries corresponds to the second employee in the json data, etc.
-        # that's what you'll start off with an index of 0, then add 7 to the index to get to the next employee, since there are 7 days in a week
         starting_index_of_entries = 0  # initialize a starting_index_of_entries variable to 0, this will be used to keep track of the index of the entries you're currently on
         for json_line in self.json_data:  # iterate through the json data, each line should be a dictionary of the employee's data
             json_name = json_line["employee_name"].replace("\n", "")  # initialize a json_name variable to the name of the employee, remove the newline character to ensure you don't have any extra spaces at the end
@@ -503,12 +499,25 @@ class Page3(Frame):  # create a Page3 class that inherits from the Frame class
                 f"Sun: {sun_schedule}"  # insert the employee's sunday schedule into the message
             )
             # the try block is inside the for loop because you want to send the message to each employee, even if an error occurs when sending the message to one of the employees
-            try:  # user a try except block to catch any errors that may occur when sending the message
-                client = Client(ACCOUNT_SID, AUTH_TOKEN)  # create a Client object from the Client class, this is what you'll use to send the text message to your employees
-                message = client.messages.create(body=message_body, from_=TWILIO_PHONE_NUMBER, to=number_to_send_to)  # use the twilio client to send the message to the employee's phone number
-                self.schedule_was_sent = True  # if the message was sent, set the schedule_was_sent attribute of the Page3 class to True
-            except Exception as e:  # if an error occurs when sending the message
-                print(f"Failed to send message to {number_to_send_to}. Error: {e}")  # print the error to the console
+            try:  # use a try except block to catch any errors that may occur when sending the message
+                response = requests.post('https://textbelt.com/text', {
+                    'phone': number_to_send_to,
+                    'message': message_body,
+                    'key': api_key,
+                })
+
+                response_data = response.json()
+
+                # Check if the message was sent successfully
+                if response_data.get('success'):
+                    self.schedule_was_sent = True  # if the message was sent, set the schedule_was_sent attribute of the Page3 class to True
+                    print(f"Message sent successfully to {number_to_send_to}.")
+                else:
+                    print(f"Failed to send message to {number_to_send_to}. Error: {response_data.get('error')}")
+
+            except Exception as e:
+                print(f"Failed to send message to {number_to_send_to}. Error: {e}")
+
 
     def yes_pressed(self, event):  # method triggered if the user presses yes on the pop up asking them if they want to send the schedule to the employees
         self.pop_up_in_focus.popup.grab_release()  # release the grab on the pop up, since the user pressed yes, you don't want the pop up to be in focus anymore
